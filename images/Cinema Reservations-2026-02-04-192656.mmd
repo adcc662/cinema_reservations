@@ -1,0 +1,109 @@
+erDiagram
+    USERS {
+        uuid id PK
+        string name
+        string email
+        string password_hash
+        boolean active
+        datetime created_at
+        datetime updated_at
+    }
+
+    ROLES {
+        uuid id PK
+        string name
+        string description
+        datetime created_at
+        datetime updated_at
+    }
+
+    USER_ROLES {
+        uuid id PK
+        uuid user_id FK
+        uuid role_id FK
+        datetime created_at
+    }
+
+    MOVIES {
+        uuid id PK
+        string name
+        string description
+        string poster_url
+        datetime created_at
+        datetime updated_at
+    }
+
+    GENRES {
+        uuid id PK
+        string name
+        datetime created_at
+        datetime updated_at
+    }
+
+    MOVIE_GENRES {
+        uuid id PK
+        uuid movie_id FK
+        uuid genre_id FK
+    }
+
+    AUDITORIUMS {
+        uuid id PK
+        string name
+        datetime created_at
+        datetime updated_at
+    }
+
+    SEATS {
+        uuid id PK
+        uuid auditorium_id FK
+        string seat_number
+        datetime created_at
+        datetime updated_at
+    }
+
+    SHOWTIMES {
+        uuid id PK
+        uuid movie_id FK
+        uuid auditorium_id FK
+        datetime starts_at
+        int duration_minutes
+        decimal price
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    RESERVATIONS {
+        uuid id PK
+        uuid user_id FK
+        uuid showtime_id FK
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    RESERVATION_SEATS {
+        uuid id PK
+        uuid reservation_id FK
+        uuid seat_id FK
+        uuid showtime_id FK
+        datetime created_at
+    }
+
+    %% Relationships
+    USERS ||--o{ USER_ROLES : has
+    ROLES ||--o{ USER_ROLES : assigned
+
+    MOVIES ||--o{ SHOWTIMES : has
+    AUDITORIUMS ||--o{ SHOWTIMES : schedules
+
+    AUDITORIUMS ||--o{ SEATS : contains
+
+    USERS ||--o{ RESERVATIONS : makes
+    SHOWTIMES ||--o{ RESERVATIONS : booked_for
+
+    RESERVATIONS ||--o{ RESERVATION_SEATS : includes
+    SEATS ||--o{ RESERVATION_SEATS : reserved
+
+    MOVIES ||--o{ MOVIE_GENRES : categorized
+    GENRES ||--o{ MOVIE_GENRES : includes
