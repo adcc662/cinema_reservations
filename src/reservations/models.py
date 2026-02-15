@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 import pytz
+from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 from src.database.base import Base
@@ -19,12 +20,12 @@ tz = pytz.timezone(get_time_zone())
 
 class ReservationSeats(SQLModel, table=True):
     __tablename__ = "reservation_seats"
+    __table_args__ = (UniqueConstraint("reservation_id", "seat_id"),)
     id: uuid_pkg.UUID = Field(
         default_factory=uuid_pkg.uuid4, primary_key=True, index=True, nullable=False
     )
     reservation_id: uuid_pkg.UUID = Field(foreign_key="reservations.id", nullable=False)
     seat_id: uuid_pkg.UUID = Field(foreign_key="seats.id", nullable=False)
-    showtime_id: uuid_pkg.UUID = Field(foreign_key="showtimes.id", nullable=False)
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(tz), nullable=False
     )

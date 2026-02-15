@@ -3,6 +3,7 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING
 
 import pytz
+from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 from src.database.base import Base
@@ -16,6 +17,7 @@ tz = pytz.timezone(get_time_zone())
 
 class MovieGenres(SQLModel, table=True):
     __tablename__ = "movie_genres"
+    __table_args__ = (UniqueConstraint("movie_id", "genre_id"),)
     id: uuid_pkg.UUID = Field(
         default_factory=uuid_pkg.uuid4, primary_key=True, index=True, nullable=False
     )
