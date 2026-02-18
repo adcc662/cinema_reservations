@@ -29,6 +29,10 @@ erDiagram
         string name
         string description
         string poster_url
+        int duration_minutes
+        date release_date
+        string rating
+        string director
         datetime created_at
         datetime updated_at
     }
@@ -86,7 +90,6 @@ erDiagram
         uuid id PK
         uuid reservation_id FK
         uuid seat_id FK
-        uuid showtime_id FK
         datetime created_at
     }
 
