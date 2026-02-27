@@ -14,7 +14,6 @@ class ShowtimeBase(BaseModel):
     movie_id: UUID4
     auditorium_id: UUID4
     starts_at: datetime
-    duration_minutes: int
     price: Decimal
     status: ShowtimeStatus = ShowtimeStatus.SCHEDULED
 
@@ -23,7 +22,6 @@ class ShowtimeCreate(ShowtimeBase):
     movie_id: UUID4
     auditorium_id: UUID4
     starts_at: datetime
-    duration_minutes: int
     price: Decimal
 
 
@@ -31,7 +29,6 @@ class ShowtimeUpdate(ShowtimeBase):
     movie_id: Optional[UUID4] = None
     auditorium_id: Optional[UUID4] = None
     starts_at: Optional[datetime] = None
-    duration_minutes: Optional[int] = None
     price: Optional[Decimal] = None
     status: Optional[ShowtimeStatus] = None
 

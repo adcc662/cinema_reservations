@@ -26,7 +26,6 @@ class Showtime(Base, SQLModel, table=True):
     movie_id: uuid_pkg.UUID = Field(foreign_key="movies.id", nullable=False)
     auditorium_id: uuid_pkg.UUID = Field(foreign_key="auditoriums.id", nullable=False)
     starts_at: datetime = Field(nullable=False)
-    duration_minutes: int = Field(nullable=False)
     price: Decimal = Field(max_digits=10, decimal_places=2, nullable=False)
     status: str = Field(default=ShowtimeStatus.SCHEDULED.value, nullable=False)
     created_at: datetime = Field(
