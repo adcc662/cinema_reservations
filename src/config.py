@@ -1,14 +1,20 @@
 import os
-from typing import Any, Dict, List, Optional, Union
+from functools import lru_cache
+from typing import Any, Optional, Union
 
-from pydantic import ConfigDict, PostgresDsn, field_validator
-from pydantic_settings import BaseSettings
+from pydantic import PostgresDsn, ValidationInfo, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env_path = os.path.join(os.getcwd(), ".env")
 
 
 class Settings(BaseSettings):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = SettingsConfigDict(
+        env_file=env_path,
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore",
+    )
 
     PROJECT_NAME: str
     PROJECT_DESCRIPTION: str
@@ -19,6 +25,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     JWT_SECRET_KEY: str
     JWT_REFRESH_SECRET_KEY: str
+
+    # Token lifetimes. Defaults are sane, override in .env if needed.
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30  # short-lived
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
     SERVER_HOST: str
     SERVER_NAME: str
@@ -34,17 +44,32 @@ class Settings(BaseSettings):
     POSTGRES_PORT: str
     DATABASE_URI: Union[PostgresDsn, str, None] = None
 
-    @field_validator("DATABASE_URI")
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+    @field_validator("DATABASE_URI", mode="before")
+    @classmethod
+    def assemble_db_connection(cls, v: Optional[str], info: ValidationInfo) -> Any:
         if isinstance(v, str):
             return v
-        return PostgresDsn.build(
-            scheme="postgresql",
-            user=values.get("POSTGRES_USER"),
-            password=f"{values.get('POSTGRES_PASSWORD')}",
-            host=f"{values.get('POSTGRES_SERVER')}:{values.get('POSTGRES_PORT')}",
-            path=f"/{values.get('POSTGRES_DB') or ''}",
-        )
+        data = info.data
+        user = data.get("POSTGRES_USER", "")
+        password = data.get("POSTGRES_PASSWORD", "")
+        server = data.get("POSTGRES_SERVER", "")
+        port = data.get("POSTGRES_PORT", "5432")
+        db = data.get("POSTGRES_DB", "")
+        return f"postgresql://{user}:{password}@{server}:{port}/{db}"
 
 
-settings = Settings()
+@lru_cache
+def get_settings() -> Settings:
+    """Return a cached Settings instance.
+
+    The lru_cache means the .env file and environment are parsed ONCE per
+    process. Every caller (FastAPI dependencies, database session, etc.)
+    shares the same object instead of re-reading config on each request.
+    """
+    return Settings()
+
+
+# Kept for backwards compatibility with modules that import `settings`
+# directly (e.g. src/database/session.py). New code should depend on
+# get_settings() so it can be overridden in tests.
+settings = get_settings()

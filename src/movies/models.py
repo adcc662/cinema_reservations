@@ -3,11 +3,10 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING
 
 import pytz
-from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 from src.database.base import Base
-from src.utils.utils import get_time_zone
+from src.utils.utils import get_time_zone, updated_at_column
 
 if TYPE_CHECKING:
     from src.showtimes.models import Showtime
@@ -17,12 +16,12 @@ tz = pytz.timezone(get_time_zone())
 
 class MovieGenres(SQLModel, table=True):
     __tablename__ = "movie_genres"
-    __table_args__ = (UniqueConstraint("movie_id", "genre_id"),)
-    id: uuid_pkg.UUID = Field(
-        default_factory=uuid_pkg.uuid4, primary_key=True, index=True, nullable=False
+    movie_id: uuid_pkg.UUID | None = Field(
+        default=None, foreign_key="movies.id", primary_key=True
     )
-    movie_id: uuid_pkg.UUID = Field(foreign_key="movies.id", nullable=False)
-    genre_id: uuid_pkg.UUID = Field(foreign_key="genres.id", nullable=False)
+    genre_id: uuid_pkg.UUID | None = Field(
+        default=None, foreign_key="genres.id", primary_key=True
+    )
 
 
 class Genre(Base, SQLModel, table=True):
@@ -34,9 +33,7 @@ class Genre(Base, SQLModel, table=True):
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(tz), nullable=False
     )
-    updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(tz), nullable=False
-    )
+    updated_at: datetime = Field(sa_column=updated_at_column())
     movies: list["Movie"] = Relationship(
         back_populates="genres", link_model=MovieGenres
     )
@@ -57,9 +54,7 @@ class Movie(Base, SQLModel, table=True):
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(tz), nullable=False
     )
-    updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(tz), nullable=False
-    )
+    updated_at: datetime = Field(sa_column=updated_at_column())
     genres: list["Genre"] = Relationship(
         back_populates="movies", link_model=MovieGenres
     )

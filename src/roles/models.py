@@ -6,7 +6,7 @@ import pytz
 from sqlmodel import Field, Relationship, SQLModel
 
 from src.database.base import Base
-from src.utils.utils import get_time_zone
+from src.utils.utils import get_time_zone, updated_at_column
 
 if TYPE_CHECKING:
     from src.users.models import User
@@ -38,6 +38,4 @@ class Role(Base, SQLModel, table=True):
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(tz), nullable=False
     )
-    updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(tz), nullable=False
-    )
+    updated_at: datetime = Field(sa_column=updated_at_column())
